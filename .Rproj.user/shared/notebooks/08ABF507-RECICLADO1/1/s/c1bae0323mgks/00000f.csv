@@ -1,0 +1,6 @@
+"0","a <- plot_grid(PORC_ADM5,PJHSEM5,TIM5,EMP5,HAC5,PIMVZ5)"
+"0","b <- plot_grid(NCASA5,NDEPA5)"
+"0","c <- plot_grid(PAMQTRA5,PAMJUBI5)"
+"0","d <- plot_grid(UNI5,MONO5,BI_SHIJ5,BI_CHIJ5,COMPUES5,EXTENSO5,SIN_NUC5)"
+"0","e <- plot_grid(CAMAY5,AMQVS5,PAMQVS5)"
+"0","f <- plot_grid(SCORE05_5,SCORE10_5,SCORE15_5,SCORE20_5)"

@@ -1,0 +1,5 @@
+"0",""
+"0","SCORE05_2   <- ggplot(SANTIAGO,aes(x = cluster2,y = W_score5))   + geom_boxplot() + labs(title = ""Caminabilidad  5 min a 2.4km/h"", x = ""Cluster"", y = ""Puntaje"")   + geom_hline(aes(yintercept = mean(W_score5,na.rm=TRUE)),linetype=""dotted"",size=1.5,color=""deeppink1"")"
+"0","SCORE10_2   <- ggplot(SANTIAGO,aes(x = cluster2,y = W_score10))  + geom_boxplot() + labs(title = ""Caminabilidad 10 min a 2.4km/h"", x = ""Cluster"", y = ""Puntaje"")   + geom_hline(aes(yintercept = mean(W_score10,na.rm=TRUE)), linetype=""dotted"",size=1.5,color=""deeppink1"")"
+"0","SCORE15_2   <- ggplot(SANTIAGO,aes(x = cluster2,y = W_score15))  + geom_boxplot() + labs(title = ""Caminabilidad 15 min a 2.4km/h"", x = ""Cluster"", y = ""Puntaje"")   + geom_hline(aes(yintercept = mean(W_score15,na.rm=TRUE)) ,linetype=""dotted"",size=1.5,color=""deeppink1"")"
+"0","SCORE20_2   <- ggplot(SANTIAGO,aes(x = cluster2,y = W_score20))  + geom_boxplot() + labs(title = ""Caminabilidad 20 min a 2.4km/h"", x = ""Cluster"", y = ""Puntaje"")   + geom_hline(aes(yintercept = mean(W_score20,na.rm=TRUE)) ,linetype=""dotted"",size=1.5,color=""deeppink1"")"

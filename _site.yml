@@ -1,0 +1,11 @@
+name: "my-website"
+navbar:
+  title: "CEDEUS"
+  left:
+    - text: "Presentación"
+      href: index.html
+    - text: "Clusterización"
+      href: RECICLADO2.html
+    - text: "Caracterización"
+      href: RECICLADO1.html
+

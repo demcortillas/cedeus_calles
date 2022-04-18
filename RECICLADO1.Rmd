@@ -1,0 +1,900 @@
+---
+title: "Caracterización de cada cluster"
+author: "Diego Medina"
+date: "21-03-2022"
+output: rmdformats::readthedown
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+library(sp)
+library(sf)
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+
+SANTIAGO           <- st_read('outputs/ISMT/SANTIAGO/SANTIAGO_ISMT.shp')
+SANTIAGO_RECICLADO <- st_read('RECICLADO/inputs/SANTIAGO_JERARQUICO1.shp') %>% 
+                      as.data.frame()                                      %>%
+                      select(GEOCODIGO,WS_05m,WS_10m,WS_15m,WS_20m,CAD_P300,CAD_P450,CAD_P600,CAD_MS300,CAD_MS450,CAD_MS600)
+
+SANTIAGO_FUSION <- merge(SANTIAGO,SANTIAGO_RECICLADO, by.x="GEOCODIGO",by.y="GEOCODIGO")
+SANTIAGO <- SANTIAGO_FUSION
+
+SANTIAGO$W_score5  <- as.numeric(SANTIAGO$WS_05m)
+SANTIAGO$W_score10 <- as.numeric(SANTIAGO$WS_10m)
+SANTIAGO$W_score15 <- as.numeric(SANTIAGO$WS_15m)
+SANTIAGO$W_score20 <- as.numeric(SANTIAGO$WS_20m)
+
+```
+
+# Respecto a la caminabilidad
+
+Antes de analizar los boxplots de caminabilidad, vale primero la pena analizar los histogramas de la variable para cada una de las solicitudes hechas.
+
+```{r,fig.width=12,fig.height=7,message=FALSE,warning=FALSE}
+hist(SANTIAGO$W_score5)
+hist(SANTIAGO$W_score10)
+hist(SANTIAGO$W_score15)
+hist(SANTIAGO$W_score20)
+```
+
+Lo que nos indica esto, como es lógico, es que a medida que aumenta el tiempo de caminata, el puntaje mejora. Estos gráficos explican por qué los boxplots posteriores se ven tan sesgados a la media muchas de las veces.
+
+# Santiago
+
+En este apartado se mostrarán los resultados de la caracterización para el caso de Santiago para distintos cortes en el dendrograma (para k entre 2 y 8)
+
+## para k = 2
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+PORC_ADM2 <- ggplot(SANTIAGO,aes(x = cluster2,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"           , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM2   <- ggplot(SANTIAGO,aes(x = cluster2,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media" , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM2      <- ggplot(SANTIAGO,aes(x = cluster2,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigracion"                           , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP2      <- ggplot(SANTIAGO,aes(x = cluster2,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"      , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC2      <- ggplot(SANTIAGO,aes(x = cluster2,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"              , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ2    <- ggplot(SANTIAGO,aes(x = cluster2,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                   , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+```
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+NCASA2    <- ggplot(SANTIAGO,aes(x = cluster2,y = NCASA))    + geom_boxplot() + labs(title = "Numero de casas  por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NCASA))   ,linetype="dotted",size=1.5,color="deeppink1")
+NDEPA2    <- ggplot(SANTIAGO,aes(x = cluster2,y = NDEPA))    + geom_boxplot() + labs(title = "Numero de deptos por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NDEPA))   ,linetype="dotted",size=1.5,color="deeppink1")
+UNI2      <- ggplot(SANTIAGO,aes(x = cluster2,y = UNI))      + geom_boxplot() + labs(title = "Numero hogares UNI "                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(UNI))      ,linetype="dotted",size=1.5,color="deeppink1")
+MONO2     <- ggplot(SANTIAGO,aes(x = cluster2,y = MONO))     + geom_boxplot() + labs(title = "Numero hogares MONO"                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(MONO))     ,linetype="dotted",size=1.5,color="deeppink1")
+BI_SHIJ2  <- ggplot(SANTIAGO,aes(x = cluster2,y = BI_SHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI sin hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_SHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+BI_CHIJ2  <- ggplot(SANTIAGO,aes(x = cluster2,y = BI_CHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI con hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_CHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+COMPUES2  <- ggplot(SANTIAGO,aes(x = cluster2,y = COMPUES))  + geom_boxplot() + labs(title = "Numero hogares Compuesto"                             , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(COMPUES))  ,linetype="dotted",size=1.5,color="deeppink1")
+EXTENSO2  <- ggplot(SANTIAGO,aes(x = cluster2,y = EXTENSO))  + geom_boxplot() + labs(title = "Numero hogares Extenso"                               , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(EXTENSO))  ,linetype="dotted",size=1.5,color="deeppink1")
+SIN_NUC2  <- ggplot(SANTIAGO,aes(x = cluster2,y = SIN_NUC))  + geom_boxplot() + labs(title = "Numero hogares Sin nucleo"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(SIN_NUC))  ,linetype="dotted",size=1.5,color="deeppink1")
+```
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+CAMAY2    <- ggplot(SANTIAGO,aes(x = cluster2,y = CAMAY))        + geom_boxplot() + labs(title = "Numero AD"                                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(CAMAY))    ,linetype="dotted",size=1.5,color="deeppink1")
+AMQVS2    <- ggplot(SANTIAGO,aes(x = cluster2,y = AMQVS))        + geom_boxplot() + labs(title = "Numero AD que viven solos"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(AMQVS))    ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQVS2   <- ggplot(SANTIAGO,aes(x = cluster2,y = PAMQVS))       + geom_boxplot() + labs(title = "Porcentaje AD que viven solos"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PAMQVS))   ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQTRA2  <- ggplot(SANTIAGO,aes(x = cluster2,y = PAMQTRA))      + geom_boxplot() + labs(title = "Porcentaje AD que trabajan"                           , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMQTRA))  ,linetype="dotted",size=1.5,color="deeppink1")
+PAMJUBI2  <- ggplot(SANTIAGO,aes(x = cluster2,y = PAMJUBI))      + geom_boxplot() + labs(title = "Porcentaje AD jubilados"                              , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMJUBI))  ,linetype="dotted",size=1.5,color="deeppink1")
+```
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+SCORE05_2   <- ggplot(SANTIAGO,aes(x = cluster2,y = W_score5))   + geom_boxplot() + labs(title = "Caminabilidad  5 min a 2.4km/h", x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score5,na.rm=TRUE)),linetype="dotted",size=1.5,color="deeppink1")
+SCORE10_2   <- ggplot(SANTIAGO,aes(x = cluster2,y = W_score10))  + geom_boxplot() + labs(title = "Caminabilidad 10 min a 2.4km/h", x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score10,na.rm=TRUE)), linetype="dotted",size=1.5,color="deeppink1")
+SCORE15_2   <- ggplot(SANTIAGO,aes(x = cluster2,y = W_score15))  + geom_boxplot() + labs(title = "Caminabilidad 15 min a 2.4km/h", x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score15,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE20_2   <- ggplot(SANTIAGO,aes(x = cluster2,y = W_score20))  + geom_boxplot() + labs(title = "Caminabilidad 20 min a 2.4km/h", x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score20,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+```
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+ISMT_2      <- ggplot(SANTIAGO,aes(x = cluster2,y = ISMT)) + geom_boxplot() + labs(title = "Indice sociomaterial territorial" , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(ISMT)) ,linetype="dotted",size=1.5,color="deeppink1")
+```
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+a <- plot_grid(PORC_ADM2,PJHSEM2,TIM2,EMP2,HAC2,PIMVZ2)
+b <- plot_grid(NCASA2,NDEPA2)
+c <- plot_grid(PAMQTRA2,PAMJUBI2)
+d <- plot_grid(UNI2,MONO2,BI_SHIJ2,BI_CHIJ2,COMPUES2,EXTENSO2,SIN_NUC2)
+e <- plot_grid(CAMAY2,AMQVS2,PAMQVS2)
+f <- plot_grid(SCORE05_2,SCORE10_2,SCORE15_2,SCORE20_2)
+```
+
+### Indicadores clasificatorios
+
+```{r,fig.width=12,fig.height=7}
+a
+```
+
+### Tipo de vivienda
+
+```{r,fig.width=12,fig.height=7}
+b
+```
+
+### Porcentaje en trabajo o jubilo
+
+```{r,fig.width=12,fig.height=7}
+c
+```
+
+### Composicion familiar
+
+```{r,fig.width=12,fig.height=7}
+d
+```
+
+### Vive acompanado o solo
+
+```{r,fig.width=12,fig.height=7}
+e
+```
+
+### Caminabilidad del AD
+
+```{r,fig.width=12,fig.height=7}
+f
+```
+
+### Indice sociomaterial territorial
+
+```{r,fig.width=12,fig.height=7}
+ISMT_2
+```
+
+## para k = 3
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+PORC_ADM3 <- ggplot(SANTIAGO,aes(x = cluster3,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM3   <- ggplot(SANTIAGO,aes(x = cluster3,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"      , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM3      <- ggplot(SANTIAGO,aes(x = cluster3,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigracion"                                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP3      <- ggplot(SANTIAGO,aes(x = cluster3,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"           , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC3      <- ggplot(SANTIAGO,aes(x = cluster3,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                   , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ3    <- ggplot(SANTIAGO,aes(x = cluster3,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+NCASA3    <- ggplot(SANTIAGO,aes(x = cluster3,y = NCASA))    + geom_boxplot() + labs(title = "Numero de casas  por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NCASA))   ,linetype="dotted",size=1.5,color="deeppink1")
+NDEPA3    <- ggplot(SANTIAGO,aes(x = cluster3,y = NDEPA))    + geom_boxplot() + labs(title = "Numero de deptos por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NDEPA))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+
+UNI3      <- ggplot(SANTIAGO,aes(x = cluster3,y = UNI))      + geom_boxplot() + labs(title = "Numero hogares UNI "                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(UNI))      ,linetype="dotted",size=1.5,color="deeppink1")
+MONO3     <- ggplot(SANTIAGO,aes(x = cluster3,y = MONO))     + geom_boxplot() + labs(title = "Numero hogares MONO"                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(MONO))     ,linetype="dotted",size=1.5,color="deeppink1")
+BI_SHIJ3  <- ggplot(SANTIAGO,aes(x = cluster3,y = BI_SHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI sin hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_SHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+BI_CHIJ3  <- ggplot(SANTIAGO,aes(x = cluster3,y = BI_CHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI con hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_CHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+COMPUES3  <- ggplot(SANTIAGO,aes(x = cluster3,y = COMPUES))  + geom_boxplot() + labs(title = "Numero hogares Compuesto"                             , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(COMPUES))  ,linetype="dotted",size=1.5,color="deeppink1")
+EXTENSO3  <- ggplot(SANTIAGO,aes(x = cluster3,y = EXTENSO))  + geom_boxplot() + labs(title = "Numero hogares Extenso"                               , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(EXTENSO))  ,linetype="dotted",size=1.5,color="deeppink1")
+SIN_NUC3  <- ggplot(SANTIAGO,aes(x = cluster3,y = SIN_NUC))  + geom_boxplot() + labs(title = "Numero hogares Sin nucleo"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(SIN_NUC))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+CAMAY3    <- ggplot(SANTIAGO,aes(x = cluster3,y = CAMAY))        + geom_boxplot() + labs(title = "Numero AD"                                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(CAMAY))    ,linetype="dotted",size=1.5,color="deeppink1")
+AMQVS3    <- ggplot(SANTIAGO,aes(x = cluster3,y = AMQVS))        + geom_boxplot() + labs(title = "Numero AD que viven solos"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(AMQVS))    ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQVS3   <- ggplot(SANTIAGO,aes(x = cluster3,y = PAMQVS))       + geom_boxplot() + labs(title = "Porcentaje AD que viven solos"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PAMQVS))   ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQTRA3  <- ggplot(SANTIAGO,aes(x = cluster3,y = PAMQTRA))      + geom_boxplot() + labs(title = "Porcentaje AD que trabajan"                           , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMQTRA))  ,linetype="dotted",size=1.5,color="deeppink1")
+PAMJUBI3  <- ggplot(SANTIAGO,aes(x = cluster3,y = PAMJUBI))      + geom_boxplot() + labs(title = "Porcentaje AD jubilados"                              , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMJUBI))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+SCORE05_3   <- ggplot(SANTIAGO,aes(x = cluster3,y = W_score5))   + geom_boxplot() + labs(title = "Caminabilidad  5 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score5,na.rm=TRUE))  ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE10_3   <- ggplot(SANTIAGO,aes(x = cluster3,y = W_score10))  + geom_boxplot() + labs(title = "Caminabilidad 10 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score10,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE15_3   <- ggplot(SANTIAGO,aes(x = cluster3,y = W_score15))  + geom_boxplot() + labs(title = "Caminabilidad 15 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score15,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE20_3   <- ggplot(SANTIAGO,aes(x = cluster3,y = W_score20))  + geom_boxplot() + labs(title = "Caminabilidad 20 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score20,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+ISMT_3      <- ggplot(SANTIAGO,aes(x = cluster3,y = ISMT)) + geom_boxplot() + labs(title = "Indice sociomaterial territorial", x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(ISMT)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+
+```
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+a <- plot_grid(PORC_ADM3,PJHSEM3,TIM3,EMP3,HAC3,PIMVZ3)
+b <- plot_grid(NCASA3,NDEPA3)
+c <- plot_grid(PAMQTRA3,PAMJUBI3)
+d <- plot_grid(UNI3,MONO3,BI_SHIJ3,BI_CHIJ3,COMPUES3,EXTENSO3,SIN_NUC3)
+e <- plot_grid(CAMAY3,AMQVS3,PAMQVS3)
+f <- plot_grid(SCORE05_3,SCORE10_3,SCORE15_3,SCORE20_3)
+```
+
+
+### Indicadores clasificatorios
+
+```{r,fig.width=12,fig.height=7}
+a
+```
+
+### Tipo de vivienda
+
+```{r,fig.width=12,fig.height=7}
+b
+```
+
+### Porcentaje en trabajo o jubilo
+
+```{r,fig.width=12,fig.height=7}
+c
+```
+
+### Composicion familiar
+
+```{r,fig.width=12,fig.height=7}
+d
+```
+
+### Vive acompanado o solo
+
+```{r,fig.width=12,fig.height=7}
+e
+```
+
+### Caminabilidad del AD
+
+```{r,fig.width=12,fig.height=7}
+f
+```
+
+
+### Indice sociomaterial territorial
+
+```{r,fig.width=12,fig.height=7}
+ISMT_3
+```
+
+
+## para k = 4
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+PORC_ADM4 <- ggplot(SANTIAGO,aes(x = cluster4,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM4   <- ggplot(SANTIAGO,aes(x = cluster4,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"      , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM4      <- ggplot(SANTIAGO,aes(x = cluster4,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigracion"                                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP4      <- ggplot(SANTIAGO,aes(x = cluster4,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"           , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC4      <- ggplot(SANTIAGO,aes(x = cluster4,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                   , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ4    <- ggplot(SANTIAGO,aes(x = cluster4,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+NCASA4    <- ggplot(SANTIAGO,aes(x = cluster4,y = NCASA))    + geom_boxplot() + labs(title = "Numero de casas  por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NCASA))   ,linetype="dotted",size=1.5,color="deeppink1")
+NDEPA4    <- ggplot(SANTIAGO,aes(x = cluster4,y = NDEPA))    + geom_boxplot() + labs(title = "Numero de deptos por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NDEPA))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+
+UNI4      <- ggplot(SANTIAGO,aes(x = cluster4,y = UNI))      + geom_boxplot() + labs(title = "Numero hogares UNI "                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(UNI))      ,linetype="dotted",size=1.5,color="deeppink1")
+MONO4     <- ggplot(SANTIAGO,aes(x = cluster4,y = MONO))     + geom_boxplot() + labs(title = "Numero hogares MONO"                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(MONO))     ,linetype="dotted",size=1.5,color="deeppink1")
+BI_SHIJ4  <- ggplot(SANTIAGO,aes(x = cluster4,y = BI_SHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI sin hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_SHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+BI_CHIJ4  <- ggplot(SANTIAGO,aes(x = cluster4,y = BI_CHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI con hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_CHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+COMPUES4  <- ggplot(SANTIAGO,aes(x = cluster4,y = COMPUES))  + geom_boxplot() + labs(title = "Numero hogares Compuesto"                             , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(COMPUES))  ,linetype="dotted",size=1.5,color="deeppink1")
+EXTENSO4  <- ggplot(SANTIAGO,aes(x = cluster4,y = EXTENSO))  + geom_boxplot() + labs(title = "Numero hogares Extenso"                               , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(EXTENSO))  ,linetype="dotted",size=1.5,color="deeppink1")
+SIN_NUC4  <- ggplot(SANTIAGO,aes(x = cluster4,y = SIN_NUC))  + geom_boxplot() + labs(title = "Numero hogares Sin nucleo"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(SIN_NUC))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+CAMAY4    <- ggplot(SANTIAGO,aes(x = cluster4,y = CAMAY))        + geom_boxplot() + labs(title = "Numero AD"                                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(CAMAY))    ,linetype="dotted",size=1.5,color="deeppink1")
+AMQVS4    <- ggplot(SANTIAGO,aes(x = cluster4,y = AMQVS))        + geom_boxplot() + labs(title = "Numero AD que viven solos"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(AMQVS))    ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQVS4   <- ggplot(SANTIAGO,aes(x = cluster4,y = PAMQVS))       + geom_boxplot() + labs(title = "Porcentaje AD que viven solos"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PAMQVS))   ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQTRA4  <- ggplot(SANTIAGO,aes(x = cluster4,y = PAMQTRA))      + geom_boxplot() + labs(title = "Porcentaje AD que trabajan"                           , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMQTRA))  ,linetype="dotted",size=1.5,color="deeppink1")
+PAMJUBI4  <- ggplot(SANTIAGO,aes(x = cluster4,y = PAMJUBI))      + geom_boxplot() + labs(title = "Porcentaje AD jubilados"                              , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMJUBI))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+SCORE05_4   <- ggplot(SANTIAGO,aes(x = cluster4,y = W_score5))   + geom_boxplot() + labs(title = "Caminabilidad  5 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score5,na.rm=TRUE))  ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE10_4   <- ggplot(SANTIAGO,aes(x = cluster4,y = W_score10))  + geom_boxplot() + labs(title = "Caminabilidad 10 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score10,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE15_4   <- ggplot(SANTIAGO,aes(x = cluster4,y = W_score15))  + geom_boxplot() + labs(title = "Caminabilidad 15 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score15,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE20_4   <- ggplot(SANTIAGO,aes(x = cluster4,y = W_score20))  + geom_boxplot() + labs(title = "Caminabilidad 20 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score20,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+ISMT_4      <- ggplot(SANTIAGO,aes(x = cluster4,y = ISMT)) + geom_boxplot() + labs(title = "Indice sociomaterial territorial"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(ISMT)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+```
+
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+a <- plot_grid(PORC_ADM4,PJHSEM4,TIM4,EMP4,HAC4,PIMVZ4)
+b <- plot_grid(NCASA4,NDEPA4)
+c <- plot_grid(PAMQTRA4,PAMJUBI4)
+d <- plot_grid(UNI4,MONO4,BI_SHIJ4,BI_CHIJ4,COMPUES4,EXTENSO4,SIN_NUC4)
+e <- plot_grid(CAMAY4,AMQVS4,PAMQVS4)
+f <- plot_grid(SCORE05_4,SCORE10_4,SCORE15_4,SCORE20_4)
+```
+
+
+### Indicadores clasificatorios
+
+```{r,fig.width=12,fig.height=7}
+a
+```
+
+### Tipo de vivienda
+
+```{r,fig.width=12,fig.height=7}
+b
+```
+
+### Porcentaje en trabajo o jubilo
+
+```{r,fig.width=12,fig.height=7}
+c
+```
+
+### Composicion familiar
+
+```{r,fig.width=12,fig.height=7}
+d
+```
+
+### Vive acompanado o solo
+
+```{r,fig.width=12,fig.height=7}
+e
+```
+
+### Caminabilidad del AD
+
+```{r,fig.width=12,fig.height=7}
+f
+```
+
+
+### Indice sociomaterial territorial
+
+```{r,fig.width=12,fig.height=7}
+ISMT_4
+```
+
+## para k = 5
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+PORC_ADM5 <- ggplot(SANTIAGO,aes(x = cluster5,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM5   <- ggplot(SANTIAGO,aes(x = cluster5,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"      , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM5      <- ggplot(SANTIAGO,aes(x = cluster5,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigracion"                                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP5      <- ggplot(SANTIAGO,aes(x = cluster5,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"           , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC5      <- ggplot(SANTIAGO,aes(x = cluster5,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                   , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ5    <- ggplot(SANTIAGO,aes(x = cluster5,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+NCASA5    <- ggplot(SANTIAGO,aes(x = cluster5,y = NCASA))    + geom_boxplot() + labs(title = "Numero de casas  por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NCASA))   ,linetype="dotted",size=1.5,color="deeppink1")
+NDEPA5    <- ggplot(SANTIAGO,aes(x = cluster5,y = NDEPA))    + geom_boxplot() + labs(title = "Numero de deptos por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NDEPA))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+
+UNI5      <- ggplot(SANTIAGO,aes(x = cluster5,y = UNI))      + geom_boxplot() + labs(title = "Numero hogares UNI "                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(UNI))      ,linetype="dotted",size=1.5,color="deeppink1")
+MONO5     <- ggplot(SANTIAGO,aes(x = cluster5,y = MONO))     + geom_boxplot() + labs(title = "Numero hogares MONO"                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(MONO))     ,linetype="dotted",size=1.5,color="deeppink1")
+BI_SHIJ5  <- ggplot(SANTIAGO,aes(x = cluster5,y = BI_SHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI sin hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_SHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+BI_CHIJ5  <- ggplot(SANTIAGO,aes(x = cluster5,y = BI_CHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI con hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_CHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+COMPUES5  <- ggplot(SANTIAGO,aes(x = cluster5,y = COMPUES))  + geom_boxplot() + labs(title = "Numero hogares Compuesto"                             , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(COMPUES))  ,linetype="dotted",size=1.5,color="deeppink1")
+EXTENSO5  <- ggplot(SANTIAGO,aes(x = cluster5,y = EXTENSO))  + geom_boxplot() + labs(title = "Numero hogares Extenso"                               , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(EXTENSO))  ,linetype="dotted",size=1.5,color="deeppink1")
+SIN_NUC5  <- ggplot(SANTIAGO,aes(x = cluster5,y = SIN_NUC))  + geom_boxplot() + labs(title = "Numero hogares Sin nucleo"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(SIN_NUC))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+CAMAY5    <- ggplot(SANTIAGO,aes(x = cluster5,y = CAMAY))        + geom_boxplot() + labs(title = "Numero AD"                                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(CAMAY))    ,linetype="dotted",size=1.5,color="deeppink1")
+AMQVS5    <- ggplot(SANTIAGO,aes(x = cluster5,y = AMQVS))        + geom_boxplot() + labs(title = "Numero AD que viven solos"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(AMQVS))    ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQVS5   <- ggplot(SANTIAGO,aes(x = cluster5,y = PAMQVS))       + geom_boxplot() + labs(title = "Porcentaje AD que viven solos"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PAMQVS))   ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQTRA5  <- ggplot(SANTIAGO,aes(x = cluster5,y = PAMQTRA))      + geom_boxplot() + labs(title = "Porcentaje AD que trabajan"                           , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMQTRA))  ,linetype="dotted",size=1.5,color="deeppink1")
+PAMJUBI5  <- ggplot(SANTIAGO,aes(x = cluster5,y = PAMJUBI))      + geom_boxplot() + labs(title = "Porcentaje AD jubilados"                              , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMJUBI))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+SCORE05_5   <- ggplot(SANTIAGO,aes(x = cluster5,y = W_score5))   + geom_boxplot() + labs(title = "Caminabilidad  5 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score5,na.rm=TRUE))  ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE10_5   <- ggplot(SANTIAGO,aes(x = cluster5,y = W_score10))  + geom_boxplot() + labs(title = "Caminabilidad 10 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score10,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE15_5   <- ggplot(SANTIAGO,aes(x = cluster5,y = W_score15))  + geom_boxplot() + labs(title = "Caminabilidad 15 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score15,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE20_5   <- ggplot(SANTIAGO,aes(x = cluster5,y = W_score20))  + geom_boxplot() + labs(title = "Caminabilidad 20 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score20,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+ISMT_5      <- ggplot(SANTIAGO,aes(x = cluster5,y = ISMT)) + geom_boxplot() + labs(title = "Indice sociomaterial territorial", x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(ISMT)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+
+```
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+a <- plot_grid(PORC_ADM5,PJHSEM5,TIM5,EMP5,HAC5,PIMVZ5)
+b <- plot_grid(NCASA5,NDEPA5)
+c <- plot_grid(PAMQTRA5,PAMJUBI5)
+d <- plot_grid(UNI5,MONO5,BI_SHIJ5,BI_CHIJ5,COMPUES5,EXTENSO5,SIN_NUC5)
+e <- plot_grid(CAMAY5,AMQVS5,PAMQVS5)
+f <- plot_grid(SCORE05_5,SCORE10_5,SCORE15_5,SCORE20_5)
+```
+
+
+### Indicadores clasificatorios
+
+```{r,fig.width=12,fig.height=7}
+a
+```
+
+### Tipo de vivienda
+
+```{r,fig.width=12,fig.height=7}
+b
+```
+
+### Porcentaje en trabajo o jubilo
+
+```{r,fig.width=12,fig.height=7}
+c
+```
+
+### Composicion familiar
+
+```{r,fig.width=12,fig.height=7}
+d
+```
+
+### Vive acompanado o solo
+
+```{r,fig.width=12,fig.height=7}
+e
+```
+
+### Caminabilidad del AD
+
+```{r,fig.width=12,fig.height=7}
+f
+```
+
+
+### Indice sociomaterial territorial
+
+```{r,fig.width=12,fig.height=7}
+ISMT_5
+```
+
+## para k = 6
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+PORC_ADM6 <- ggplot(SANTIAGO,aes(x = cluster6,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM6   <- ggplot(SANTIAGO,aes(x = cluster6,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"      , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM6      <- ggplot(SANTIAGO,aes(x = cluster6,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigracion"                                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP6      <- ggplot(SANTIAGO,aes(x = cluster6,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"           , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC6      <- ggplot(SANTIAGO,aes(x = cluster6,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                   , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ6    <- ggplot(SANTIAGO,aes(x = cluster6,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+NCASA6    <- ggplot(SANTIAGO,aes(x = cluster6,y = NCASA))    + geom_boxplot() + labs(title = "Numero de casas  por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NCASA))   ,linetype="dotted",size=1.5,color="deeppink1")
+NDEPA6    <- ggplot(SANTIAGO,aes(x = cluster6,y = NDEPA))    + geom_boxplot() + labs(title = "Numero de deptos por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NDEPA))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+
+UNI6      <- ggplot(SANTIAGO,aes(x = cluster6,y = UNI))      + geom_boxplot() + labs(title = "Numero hogares UNI "                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(UNI))      ,linetype="dotted",size=1.5,color="deeppink1")
+MONO6     <- ggplot(SANTIAGO,aes(x = cluster6,y = MONO))     + geom_boxplot() + labs(title = "Numero hogares MONO"                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(MONO))     ,linetype="dotted",size=1.5,color="deeppink1")
+BI_SHIJ6  <- ggplot(SANTIAGO,aes(x = cluster6,y = BI_SHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI sin hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_SHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+BI_CHIJ6  <- ggplot(SANTIAGO,aes(x = cluster6,y = BI_CHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI con hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_CHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+COMPUES6  <- ggplot(SANTIAGO,aes(x = cluster6,y = COMPUES))  + geom_boxplot() + labs(title = "Numero hogares Compuesto"                             , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(COMPUES))  ,linetype="dotted",size=1.5,color="deeppink1")
+EXTENSO6  <- ggplot(SANTIAGO,aes(x = cluster6,y = EXTENSO))  + geom_boxplot() + labs(title = "Numero hogares Extenso"                               , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(EXTENSO))  ,linetype="dotted",size=1.5,color="deeppink1")
+SIN_NUC6  <- ggplot(SANTIAGO,aes(x = cluster6,y = SIN_NUC))  + geom_boxplot() + labs(title = "Numero hogares Sin nucleo"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(SIN_NUC))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+CAMAY6    <- ggplot(SANTIAGO,aes(x = cluster6,y = CAMAY))        + geom_boxplot() + labs(title = "Numero AD"                                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(CAMAY))    ,linetype="dotted",size=1.5,color="deeppink1")
+AMQVS6    <- ggplot(SANTIAGO,aes(x = cluster6,y = AMQVS))        + geom_boxplot() + labs(title = "Numero AD que viven solos"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(AMQVS))    ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQVS6   <- ggplot(SANTIAGO,aes(x = cluster6,y = PAMQVS))       + geom_boxplot() + labs(title = "Porcentaje AD que viven solos"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PAMQVS))   ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQTRA6  <- ggplot(SANTIAGO,aes(x = cluster6,y = PAMQTRA))      + geom_boxplot() + labs(title = "Porcentaje AD que trabajan"                           , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMQTRA))  ,linetype="dotted",size=1.5,color="deeppink1")
+PAMJUBI6  <- ggplot(SANTIAGO,aes(x = cluster6,y = PAMJUBI))      + geom_boxplot() + labs(title = "Porcentaje AD jubilados"                              , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMJUBI))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+SCORE05_6   <- ggplot(SANTIAGO,aes(x = cluster6,y = W_score5))   + geom_boxplot() + labs(title = "Caminabilidad  5 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score5,na.rm=TRUE))  ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE10_6   <- ggplot(SANTIAGO,aes(x = cluster6,y = W_score10))  + geom_boxplot() + labs(title = "Caminabilidad 10 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score10,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE15_6   <- ggplot(SANTIAGO,aes(x = cluster6,y = W_score15))  + geom_boxplot() + labs(title = "Caminabilidad 15 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score15,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE20_6   <- ggplot(SANTIAGO,aes(x = cluster6,y = W_score20))  + geom_boxplot() + labs(title = "Caminabilidad 20 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score20,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+ISMT_6      <- ggplot(SANTIAGO,aes(x = cluster6,y = ISMT)) + geom_boxplot() + labs(title = "Indice sociomaterial territorial", x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(ISMT)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+```
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+a <- plot_grid(PORC_ADM6,PJHSEM6,TIM3,EMP6,HAC6,PIMVZ6)
+b <- plot_grid(NCASA6,NDEPA6)
+c <- plot_grid(PAMQTRA6,PAMJUBI6)
+d <- plot_grid(UNI6,MONO6,BI_SHIJ6,BI_CHIJ6,COMPUES6,EXTENSO6,SIN_NUC6)
+e <- plot_grid(CAMAY6,AMQVS6,PAMQVS6)
+f <- plot_grid(SCORE05_6,SCORE10_6,SCORE15_6,SCORE20_6)
+```
+
+
+### Indicadores clasificatorios
+
+```{r,fig.width=12,fig.height=7}
+a
+```
+
+### Tipo de vivienda
+
+```{r,fig.width=12,fig.height=7}
+b
+```
+
+### Porcentaje en trabajo o jubilo
+
+```{r,fig.width=12,fig.height=7}
+c
+```
+
+### Composicion familiar
+
+```{r,fig.width=12,fig.height=7}
+d
+```
+
+### Vive acompanado o solo
+
+```{r,fig.width=12,fig.height=7}
+e
+```
+
+### Caminabilidad del AD
+
+```{r,fig.width=12,fig.height=7}
+f
+```
+
+
+### Indice sociomaterial territorial
+
+```{r,fig.width=12,fig.height=7}
+ISMT_6
+```
+
+
+## para k = 7
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+PORC_ADM7 <- ggplot(SANTIAGO,aes(x = cluster7,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM7   <- ggplot(SANTIAGO,aes(x = cluster7,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"      , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM7      <- ggplot(SANTIAGO,aes(x = cluster7,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigracion"                                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP7      <- ggplot(SANTIAGO,aes(x = cluster7,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"           , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC7      <- ggplot(SANTIAGO,aes(x = cluster7,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                   , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ7    <- ggplot(SANTIAGO,aes(x = cluster7,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+NCASA7    <- ggplot(SANTIAGO,aes(x = cluster7,y = NCASA))    + geom_boxplot() + labs(title = "Numero de casas  por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NCASA))   ,linetype="dotted",size=1.5,color="deeppink1")
+NDEPA7    <- ggplot(SANTIAGO,aes(x = cluster7,y = NDEPA))    + geom_boxplot() + labs(title = "Numero de deptos por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NDEPA))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+
+UNI7      <- ggplot(SANTIAGO,aes(x = cluster7,y = UNI))      + geom_boxplot() + labs(title = "Numero hogares UNI "                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(UNI))      ,linetype="dotted",size=1.5,color="deeppink1")
+MONO7     <- ggplot(SANTIAGO,aes(x = cluster7,y = MONO))     + geom_boxplot() + labs(title = "Numero hogares MONO"                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(MONO))     ,linetype="dotted",size=1.5,color="deeppink1")
+BI_SHIJ7  <- ggplot(SANTIAGO,aes(x = cluster7,y = BI_SHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI sin hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_SHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+BI_CHIJ7  <- ggplot(SANTIAGO,aes(x = cluster7,y = BI_CHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI con hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_CHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+COMPUES7  <- ggplot(SANTIAGO,aes(x = cluster7,y = COMPUES))  + geom_boxplot() + labs(title = "Numero hogares Compuesto"                             , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(COMPUES))  ,linetype="dotted",size=1.5,color="deeppink1")
+EXTENSO7  <- ggplot(SANTIAGO,aes(x = cluster7,y = EXTENSO))  + geom_boxplot() + labs(title = "Numero hogares Extenso"                               , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(EXTENSO))  ,linetype="dotted",size=1.5,color="deeppink1")
+SIN_NUC7  <- ggplot(SANTIAGO,aes(x = cluster7,y = SIN_NUC))  + geom_boxplot() + labs(title = "Numero hogares Sin nucleo"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(SIN_NUC))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+CAMAY7    <- ggplot(SANTIAGO,aes(x = cluster7,y = CAMAY))        + geom_boxplot() + labs(title = "Numero AD"                                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(CAMAY))    ,linetype="dotted",size=1.5,color="deeppink1")
+AMQVS7    <- ggplot(SANTIAGO,aes(x = cluster7,y = AMQVS))        + geom_boxplot() + labs(title = "Numero AD que viven solos"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(AMQVS))    ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQVS7   <- ggplot(SANTIAGO,aes(x = cluster7,y = PAMQVS))       + geom_boxplot() + labs(title = "Porcentaje AD que viven solos"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PAMQVS))   ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQTRA7  <- ggplot(SANTIAGO,aes(x = cluster7,y = PAMQTRA))      + geom_boxplot() + labs(title = "Porcentaje AD que trabajan"                           , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMQTRA))  ,linetype="dotted",size=1.5,color="deeppink1")
+PAMJUBI7  <- ggplot(SANTIAGO,aes(x = cluster7,y = PAMJUBI))      + geom_boxplot() + labs(title = "Porcentaje AD jubilados"                              , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMJUBI))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+SCORE05_7   <- ggplot(SANTIAGO,aes(x = cluster7,y = W_score5))   + geom_boxplot() + labs(title = "Caminabilidad  5 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score5,na.rm=TRUE))  ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE10_7   <- ggplot(SANTIAGO,aes(x = cluster7,y = W_score10))  + geom_boxplot() + labs(title = "Caminabilidad 10 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score10,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE15_7   <- ggplot(SANTIAGO,aes(x = cluster7,y = W_score15))  + geom_boxplot() + labs(title = "Caminabilidad 15 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score15,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE20_7   <- ggplot(SANTIAGO,aes(x = cluster7,y = W_score20))  + geom_boxplot() + labs(title = "Caminabilidad 20 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score20,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+ISMT_7      <- ggplot(SANTIAGO,aes(x = cluster7,y = ISMT)) + geom_boxplot() + labs(title = "Indice sociomaterial territorial", x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(ISMT)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+```
+
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+a <- plot_grid(PORC_ADM7,PJHSEM7,TIM7,EMP7,HAC7,PIMVZ7)
+b <- plot_grid(NCASA7,NDEPA7)
+c <- plot_grid(PAMQTRA7,PAMJUBI7)
+d <- plot_grid(UNI7,MONO7,BI_SHIJ7,BI_CHIJ7,COMPUES7,EXTENSO7,SIN_NUC7)
+e <- plot_grid(CAMAY7,AMQVS7,PAMQVS7)
+f <- plot_grid(SCORE05_7,SCORE10_7,SCORE15_7,SCORE20_7)
+```
+
+
+### Indicadores clasificatorios
+
+```{r,fig.width=12,fig.height=7}
+a
+```
+
+### Tipo de vivienda
+
+```{r,fig.width=12,fig.height=7}
+b
+```
+
+### Porcentaje en trabajo o jubilo
+
+```{r,fig.width=12,fig.height=7}
+c
+```
+
+### Composicion familiar
+
+```{r,fig.width=12,fig.height=7}
+d
+```
+
+### Vive acompanado o solo
+
+```{r,fig.width=12,fig.height=7}
+e
+```
+
+### Caminabilidad del AD
+
+```{r,fig.width=12,fig.height=7}
+f
+```
+
+
+### Indice sociomaterial territorial
+
+```{r,fig.width=12,fig.height=7}
+ISMT_7
+```
+
+## para k = 8
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+PORC_ADM8 <- ggplot(SANTIAGO,aes(x = cluster8,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM8   <- ggplot(SANTIAGO,aes(x = cluster8,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"      , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM8      <- ggplot(SANTIAGO,aes(x = cluster8,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigracion"                                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP8      <- ggplot(SANTIAGO,aes(x = cluster8,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"           , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC8      <- ggplot(SANTIAGO,aes(x = cluster8,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                   , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ8    <- ggplot(SANTIAGO,aes(x = cluster8,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+NCASA8    <- ggplot(SANTIAGO,aes(x = cluster8,y = NCASA))    + geom_boxplot() + labs(title = "Numero de casas  por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NCASA))   ,linetype="dotted",size=1.5,color="deeppink1")
+NDEPA8    <- ggplot(SANTIAGO,aes(x = cluster8,y = NDEPA))    + geom_boxplot() + labs(title = "Numero de deptos por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NDEPA))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+UNI8      <- ggplot(SANTIAGO,aes(x = cluster8,y = UNI))      + geom_boxplot() + labs(title = "Numero hogares UNI "                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(UNI))      ,linetype="dotted",size=1.5,color="deeppink1")
+MONO8     <- ggplot(SANTIAGO,aes(x = cluster8,y = MONO))     + geom_boxplot() + labs(title = "Numero hogares MONO"                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(MONO))     ,linetype="dotted",size=1.5,color="deeppink1")
+BI_SHIJ8  <- ggplot(SANTIAGO,aes(x = cluster8,y = BI_SHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI sin hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_SHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+BI_CHIJ8  <- ggplot(SANTIAGO,aes(x = cluster8,y = BI_CHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI con hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_CHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+COMPUES8  <- ggplot(SANTIAGO,aes(x = cluster8,y = COMPUES))  + geom_boxplot() + labs(title = "Numero hogares Compuesto"                             , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(COMPUES))  ,linetype="dotted",size=1.5,color="deeppink1")
+EXTENSO8  <- ggplot(SANTIAGO,aes(x = cluster8,y = EXTENSO))  + geom_boxplot() + labs(title = "Numero hogares Extenso"                               , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(EXTENSO))  ,linetype="dotted",size=1.5,color="deeppink1")
+SIN_NUC8  <- ggplot(SANTIAGO,aes(x = cluster8,y = SIN_NUC))  + geom_boxplot() + labs(title = "Numero hogares Sin nucleo"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(SIN_NUC))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+CAMAY8    <- ggplot(SANTIAGO,aes(x = cluster8,y = CAMAY))        + geom_boxplot() + labs(title = "Numero AD"                                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(CAMAY))    ,linetype="dotted",size=1.5,color="deeppink1")
+AMQVS8    <- ggplot(SANTIAGO,aes(x = cluster8,y = AMQVS))        + geom_boxplot() + labs(title = "Numero AD que viven solos"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(AMQVS))    ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQVS8   <- ggplot(SANTIAGO,aes(x = cluster8,y = PAMQVS))       + geom_boxplot() + labs(title = "Porcentaje AD que viven solos"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PAMQVS))   ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQTRA8  <- ggplot(SANTIAGO,aes(x = cluster8,y = PAMQTRA))      + geom_boxplot() + labs(title = "Porcentaje AD que trabajan"                           , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMQTRA))  ,linetype="dotted",size=1.5,color="deeppink1")
+PAMJUBI8  <- ggplot(SANTIAGO,aes(x = cluster8,y = PAMJUBI))      + geom_boxplot() + labs(title = "Porcentaje AD jubilados"                              , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMJUBI))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+SCORE05_8   <- ggplot(SANTIAGO,aes(x = cluster8,y = W_score5))   + geom_boxplot() + labs(title = "Caminabilidad  5 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score5,na.rm=TRUE))  ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE10_8   <- ggplot(SANTIAGO,aes(x = cluster8,y = W_score10))  + geom_boxplot() + labs(title = "Caminabilidad 10 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score10,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE15_8   <- ggplot(SANTIAGO,aes(x = cluster8,y = W_score15))  + geom_boxplot() + labs(title = "Caminabilidad 15 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score15,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE20_8   <- ggplot(SANTIAGO,aes(x = cluster8,y = W_score20))  + geom_boxplot() + labs(title = "Caminabilidad 20 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score20,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+ISMT_8      <- ggplot(SANTIAGO,aes(x = cluster8,y = ISMT)) + geom_boxplot() + labs(title = "Indice sociomaterial territorial", x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(ISMT)) ,linetype="dotted",size=1.5,color="deeppink1")
+```
+
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+a <- plot_grid(PORC_ADM8,PJHSEM8,TIM8,EMP8,HAC8,PIMVZ8)
+b <- plot_grid(NCASA8,NDEPA8)
+c <- plot_grid(PAMQTRA8,PAMJUBI8)
+d <- plot_grid(UNI8,MONO8,BI_SHIJ8,BI_CHIJ8,COMPUES8,EXTENSO8,SIN_NUC8)
+e <- plot_grid(CAMAY8,AMQVS8,PAMQVS8)
+f <- plot_grid(SCORE05_8,SCORE10_8,SCORE15_8,SCORE20_8)
+```
+
+
+### Indicadores clasificatorios
+
+```{r,fig.width=12,fig.height=7}
+a
+```
+
+### Tipo de vivienda
+
+```{r,fig.width=12,fig.height=7}
+b
+```
+
+### Porcentaje en trabajo o jubilo
+
+```{r,fig.width=12,fig.height=7}
+c
+```
+
+### Composicion familiar
+
+```{r,fig.width=12,fig.height=7}
+d
+```
+
+### Vive acompanado o solo
+
+```{r,fig.width=12,fig.height=7}
+e
+```
+
+### Caminabilidad del AD
+
+```{r,fig.width=12,fig.height=7}
+f
+```
+
+
+### Indice sociomaterial territorial
+
+```{r,fig.width=12,fig.height=7}
+ISMT_8
+```
+
+
+
+
+
+
+
+
+
+
+
+## Casos especial
+
+### Caso 1
+
+En el primer caso se toman las categorías de cluster **más avejentadas** con la categoría **a** (categorías 1,5,6,8) y **menos avejentadas** como **b**
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+PORC_ADM8 <- ggplot(SANTIAGO,aes(x = k8I,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM8   <- ggplot(SANTIAGO,aes(x = k8I,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"      , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM8      <- ggplot(SANTIAGO,aes(x = k8I,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigracion"                                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP8      <- ggplot(SANTIAGO,aes(x = k8I,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"           , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC8      <- ggplot(SANTIAGO,aes(x = k8I,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                   , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ8    <- ggplot(SANTIAGO,aes(x = k8I,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+NCASA8    <- ggplot(SANTIAGO,aes(x = k8I,y = NCASA))    + geom_boxplot() + labs(title = "Numero de casas  por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NCASA))   ,linetype="dotted",size=1.5,color="deeppink1")
+NDEPA8    <- ggplot(SANTIAGO,aes(x = k8I,y = NDEPA))    + geom_boxplot() + labs(title = "Numero de deptos por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NDEPA))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+UNI8      <- ggplot(SANTIAGO,aes(x = k8I,y = UNI))      + geom_boxplot() + labs(title = "Numero hogares UNI "                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(UNI))      ,linetype="dotted",size=1.5,color="deeppink1")
+MONO8     <- ggplot(SANTIAGO,aes(x = k8I,y = MONO))     + geom_boxplot() + labs(title = "Numero hogares MONO"                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(MONO))     ,linetype="dotted",size=1.5,color="deeppink1")
+BI_SHIJ8  <- ggplot(SANTIAGO,aes(x = k8I,y = BI_SHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI sin hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_SHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+BI_CHIJ8  <- ggplot(SANTIAGO,aes(x = k8I,y = BI_CHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI con hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_CHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+COMPUES8  <- ggplot(SANTIAGO,aes(x = k8I,y = COMPUES))  + geom_boxplot() + labs(title = "Numero hogares Compuesto"                             , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(COMPUES))  ,linetype="dotted",size=1.5,color="deeppink1")
+EXTENSO8  <- ggplot(SANTIAGO,aes(x = k8I,y = EXTENSO))  + geom_boxplot() + labs(title = "Numero hogares Extenso"                               , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(EXTENSO))  ,linetype="dotted",size=1.5,color="deeppink1")
+SIN_NUC8  <- ggplot(SANTIAGO,aes(x = k8I,y = SIN_NUC))  + geom_boxplot() + labs(title = "Numero hogares Sin nucleo"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(SIN_NUC))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+CAMAY8    <- ggplot(SANTIAGO,aes(x = k8I,y = CAMAY))        + geom_boxplot() + labs(title = "Numero AD"                                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(CAMAY))    ,linetype="dotted",size=1.5,color="deeppink1")
+AMQVS8    <- ggplot(SANTIAGO,aes(x = k8I,y = AMQVS))        + geom_boxplot() + labs(title = "Numero AD que viven solos"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(AMQVS))    ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQVS8   <- ggplot(SANTIAGO,aes(x = k8I,y = PAMQVS))       + geom_boxplot() + labs(title = "Porcentaje AD que viven solos"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PAMQVS))   ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQTRA8  <- ggplot(SANTIAGO,aes(x = k8I,y = PAMQTRA))      + geom_boxplot() + labs(title = "Porcentaje AD que trabajan"                           , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMQTRA))  ,linetype="dotted",size=1.5,color="deeppink1")
+PAMJUBI8  <- ggplot(SANTIAGO,aes(x = k8I,y = PAMJUBI))      + geom_boxplot() + labs(title = "Porcentaje AD jubilados"                              , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMJUBI))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+SCORE05_8   <- ggplot(SANTIAGO,aes(x = k8I,y = W_score5))   + geom_boxplot() + labs(title = "Caminabilidad  5 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score5,na.rm=TRUE))  ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE10_8   <- ggplot(SANTIAGO,aes(x = k8I,y = W_score10))  + geom_boxplot() + labs(title = "Caminabilidad 10 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score10,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE15_8   <- ggplot(SANTIAGO,aes(x = k8I,y = W_score15))  + geom_boxplot() + labs(title = "Caminabilidad 15 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score15,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE20_8   <- ggplot(SANTIAGO,aes(x = k8I,y = W_score20))  + geom_boxplot() + labs(title = "Caminabilidad 20 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score20,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+ISMT_8      <- ggplot(SANTIAGO,aes(x = k8I,y = ISMT)) + geom_boxplot() + labs(title = "Indice sociomaterial territorial", x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(ISMT)) ,linetype="dotted",size=1.5,color="deeppink1")
+```
+
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+a <- plot_grid(PORC_ADM8,PJHSEM8,TIM8,EMP8,HAC8,PIMVZ8)
+b <- plot_grid(NCASA8,NDEPA8)
+c <- plot_grid(PAMQTRA8,PAMJUBI8)
+d <- plot_grid(UNI8,MONO8,BI_SHIJ8,BI_CHIJ8,COMPUES8,EXTENSO8,SIN_NUC8)
+e <- plot_grid(CAMAY8,AMQVS8,PAMQVS8)
+f <- plot_grid(SCORE05_8,SCORE10_8,SCORE15_8,SCORE20_8)
+```
+
+
+### Indicadores clasificatorios
+
+```{r,fig.width=12,fig.height=7}
+a
+```
+
+### Tipo de vivienda
+
+```{r,fig.width=12,fig.height=7}
+b
+```
+
+### Porcentaje en trabajo o jubilo
+
+```{r,fig.width=12,fig.height=7}
+c
+```
+
+### Composicion familiar
+
+```{r,fig.width=12,fig.height=7}
+d
+```
+
+### Vive acompanado o solo
+
+```{r,fig.width=12,fig.height=7}
+e
+```
+
+### Caminabilidad del AD
+
+```{r,fig.width=12,fig.height=7}
+f
+```
+
+
+### Indice sociomaterial territorial
+
+```{r,fig.width=12,fig.height=7}
+ISMT_8
+```
+
+
+
+
+
+
+
+### Caso 2
+
+En el segundo caso se toma la categoría de cluster **más avejentada y acomodada** con la categoría **a** perteneciente al grupo (8). En el extremo opuesto se recategorizan **más aventajadas, pero menos acomodadas** (5,6) como **b**. El resto se recategoriza como **c**
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+PORC_ADM8 <- ggplot(SANTIAGO,aes(x = k8II,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM8   <- ggplot(SANTIAGO,aes(x = k8II,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"      , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM8      <- ggplot(SANTIAGO,aes(x = k8II,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigracion"                                , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP8      <- ggplot(SANTIAGO,aes(x = k8II,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"           , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC8      <- ggplot(SANTIAGO,aes(x = k8II,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                   , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ8    <- ggplot(SANTIAGO,aes(x = k8II,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+NCASA8    <- ggplot(SANTIAGO,aes(x = k8II,y = NCASA))    + geom_boxplot() + labs(title = "Numero de casas  por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NCASA))   ,linetype="dotted",size=1.5,color="deeppink1")
+NDEPA8    <- ggplot(SANTIAGO,aes(x = k8II,y = NDEPA))    + geom_boxplot() + labs(title = "Numero de deptos por zona"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(NDEPA))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+UNI8      <- ggplot(SANTIAGO,aes(x = k8II,y = UNI))      + geom_boxplot() + labs(title = "Numero hogares UNI "                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(UNI))      ,linetype="dotted",size=1.5,color="deeppink1")
+MONO8     <- ggplot(SANTIAGO,aes(x = k8II,y = MONO))     + geom_boxplot() + labs(title = "Numero hogares MONO"                                  , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(MONO))     ,linetype="dotted",size=1.5,color="deeppink1")
+BI_SHIJ8  <- ggplot(SANTIAGO,aes(x = k8II,y = BI_SHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI sin hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_SHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+BI_CHIJ8  <- ggplot(SANTIAGO,aes(x = k8II,y = BI_CHIJ))  + geom_boxplot() + labs(title = "Numero hogares BI con hijos"                          , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(BI_CHIJ))  ,linetype="dotted",size=1.5,color="deeppink1")
+COMPUES8  <- ggplot(SANTIAGO,aes(x = k8II,y = COMPUES))  + geom_boxplot() + labs(title = "Numero hogares Compuesto"                             , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(COMPUES))  ,linetype="dotted",size=1.5,color="deeppink1")
+EXTENSO8  <- ggplot(SANTIAGO,aes(x = k8II,y = EXTENSO))  + geom_boxplot() + labs(title = "Numero hogares Extenso"                               , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(EXTENSO))  ,linetype="dotted",size=1.5,color="deeppink1")
+SIN_NUC8  <- ggplot(SANTIAGO,aes(x = k8II,y = SIN_NUC))  + geom_boxplot() + labs(title = "Numero hogares Sin nucleo"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(SIN_NUC))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+CAMAY8    <- ggplot(SANTIAGO,aes(x = k8II,y = CAMAY))        + geom_boxplot() + labs(title = "Numero AD"                                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(CAMAY))    ,linetype="dotted",size=1.5,color="deeppink1")
+AMQVS8    <- ggplot(SANTIAGO,aes(x = k8II,y = AMQVS))        + geom_boxplot() + labs(title = "Numero AD que viven solos"                            , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(AMQVS))    ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQVS8   <- ggplot(SANTIAGO,aes(x = k8II,y = PAMQVS))       + geom_boxplot() + labs(title = "Porcentaje AD que viven solos"                        , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(PAMQVS))   ,linetype="dotted",size=1.5,color="deeppink1")
+PAMQTRA8  <- ggplot(SANTIAGO,aes(x = k8II,y = PAMQTRA))      + geom_boxplot() + labs(title = "Porcentaje AD que trabajan"                           , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMQTRA))  ,linetype="dotted",size=1.5,color="deeppink1")
+PAMJUBI8  <- ggplot(SANTIAGO,aes(x = k8II,y = PAMJUBI))      + geom_boxplot() + labs(title = "Porcentaje AD jubilados"                              , x = "Cluster", y = "Cantidad")   + geom_hline(aes(yintercept = mean(PAMJUBI))  ,linetype="dotted",size=1.5,color="deeppink1")
+
+SCORE05_8   <- ggplot(SANTIAGO,aes(x = k8II,y = W_score5))   + geom_boxplot() + labs(title = "Caminabilidad  5 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score5,na.rm=TRUE))  ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE10_8   <- ggplot(SANTIAGO,aes(x = k8II,y = W_score10))  + geom_boxplot() + labs(title = "Caminabilidad 10 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score10,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE15_8   <- ggplot(SANTIAGO,aes(x = k8II,y = W_score15))  + geom_boxplot() + labs(title = "Caminabilidad 15 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score15,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+SCORE20_8   <- ggplot(SANTIAGO,aes(x = k8II,y = W_score20))  + geom_boxplot() + labs(title = "Caminabilidad 20 min a 2.4km/h"                    , x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(W_score20,na.rm=TRUE)) ,linetype="dotted",size=1.5,color="deeppink1")
+
+ISMT_8      <- ggplot(SANTIAGO,aes(x = k8II,y = ISMT)) + geom_boxplot() + labs(title = "Indice sociomaterial territorial", x = "Cluster", y = "Puntaje")   + geom_hline(aes(yintercept = mean(ISMT)) ,linetype="dotted",size=1.5,color="deeppink1")
+```
+
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+a <- plot_grid(PORC_ADM8,PJHSEM8,TIM8,EMP8,HAC8,PIMVZ8)
+b <- plot_grid(NCASA8,NDEPA8)
+c <- plot_grid(PAMQTRA8,PAMJUBI8)
+d <- plot_grid(UNI8,MONO8,BI_SHIJ8,BI_CHIJ8,COMPUES8,EXTENSO8,SIN_NUC8)
+e <- plot_grid(CAMAY8,AMQVS8,PAMQVS8)
+f <- plot_grid(SCORE05_8,SCORE10_8,SCORE15_8,SCORE20_8)
+```
+
+
+### Indicadores clasificatorios
+
+```{r,fig.width=12,fig.height=7}
+a
+```
+
+### Tipo de vivienda
+
+```{r,fig.width=12,fig.height=7}
+b
+```
+
+### Porcentaje en trabajo o jubilo
+
+```{r,fig.width=12,fig.height=7}
+c
+```
+
+### Composicion familiar
+
+```{r,fig.width=12,fig.height=7}
+d
+```
+
+### Vive acompanado o solo
+
+```{r,fig.width=12,fig.height=7}
+e
+```
+
+### Caminabilidad del AD
+
+```{r,fig.width=12,fig.height=7}
+f
+```
+
+
+### Indice sociomaterial territorial
+
+```{r,fig.width=12,fig.height=7}
+ISMT_8
+```

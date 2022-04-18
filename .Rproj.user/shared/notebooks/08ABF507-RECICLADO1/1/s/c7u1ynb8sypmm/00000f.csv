@@ -1,0 +1,6 @@
+"0","a <- plot_grid(PORC_ADM8,PJHSEM8,TIM8,EMP8,HAC8,PIMVZ8)"
+"0","b <- plot_grid(NCASA8,NDEPA8)"
+"0","c <- plot_grid(PAMQTRA8,PAMJUBI8)"
+"0","d <- plot_grid(UNI8,MONO8,BI_SHIJ8,BI_CHIJ8,COMPUES8,EXTENSO8,SIN_NUC8)"
+"0","e <- plot_grid(CAMAY8,AMQVS8,PAMQVS8)"
+"0","f <- plot_grid(SCORE05_8,SCORE10_8,SCORE15_8,SCORE20_8)"

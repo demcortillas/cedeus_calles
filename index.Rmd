@@ -1,0 +1,9 @@
+---
+title: "Avances CEDEUS"
+author: "Diego Medina, Stefan Steiniger, Giovanni Veccio"
+output: rmdformats::readthedown
+---
+
+Hola, en este sitio se mostrarán los avances del proyecto FONDAD N 15110020 Identificación hotspots de adultos mayores y levantamiento flujos SCL-CCP
+Se muestran los avances por fecha, las actas de reunión y el análisis de cada entrega.
+

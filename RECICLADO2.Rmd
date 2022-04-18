@@ -1,0 +1,107 @@
+---
+title: "Proceso de clustering y análisis descriptivo"
+author: "Diego Medina"
+date: "21-03-2022"
+output: rmdformats::readthedown
+---
+
+```{r,message=FALSE,warning=FALSE}
+library(sf)
+library(rgdal)
+library(ggplot2)
+library(cowplot)
+```
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+SANTIAGO    <- st_read(dsn="outputs/ISMT/SANTIAGO/SANTIAGO_ISMT.shp",quiet=TRUE)
+database    <- as.data.frame(st_read(dsn="outputs/GEODATABASE/adultomayor.shp",quiet=TRUE) )
+```
+
+### Dendrograma general
+
+![Clustering Jerárquico Santiago](outputs/Plots/HClust.png)
+
+### Para 4 categorías
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+# ------ CLUSTER k = 4 ------- #
+
+PORC_ADM4 <- ggplot(SANTIAGO,aes(x = cluster4,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"               , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM4   <- ggplot(SANTIAGO,aes(x = cluster4,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"     , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM4      <- ggplot(SANTIAGO,aes(x = cluster4,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigración"                               , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(database$TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP4      <- ggplot(SANTIAGO,aes(x = cluster4,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"          , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC4      <- ggplot(SANTIAGO,aes(x = cluster4,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                  , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ4    <- ggplot(SANTIAGO,aes(x = cluster4,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                       , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+```
+
+
+```{r,fig.width=12,fig.height=7}
+plot_grid(PORC_ADM4,PJHSEM4,TIM4,EMP4,HAC4,PIMVZ4)
+```
+
+### Para 5 categorías
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+PORC_ADM5 <- ggplot(SANTIAGO,aes(x = cluster5,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"               , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM5   <- ggplot(SANTIAGO,aes(x = cluster5,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"     , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM5      <- ggplot(SANTIAGO,aes(x = cluster5,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigración"                               , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(database$TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP5      <- ggplot(SANTIAGO,aes(x = cluster5,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"          , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC5      <- ggplot(SANTIAGO,aes(x = cluster5,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                  , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ5    <- ggplot(SANTIAGO,aes(x = cluster5,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                       , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+```
+
+```{r,fig.width=12,fig.height=7}
+plot_grid(PORC_ADM5,PJHSEM5,TIM5,EMP5,HAC5,PIMVZ5)
+```
+
+### Para 6 categorías
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+PORC_ADM6 <- ggplot(SANTIAGO,aes(x = cluster6,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"               , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM6   <- ggplot(SANTIAGO,aes(x = cluster6,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"     , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM6      <- ggplot(SANTIAGO,aes(x = cluster6,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigración"                               , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(database$TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP6      <- ggplot(SANTIAGO,aes(x = cluster6,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"          , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC6      <- ggplot(SANTIAGO,aes(x = cluster6,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                  , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ6    <- ggplot(SANTIAGO,aes(x = cluster6,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                       , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+```
+
+```{r,fig.width=12,fig.height=7}
+plot_grid(PORC_ADM6,PJHSEM6,TIM6,EMP6,HAC6,PIMVZ6)
+```
+
+### Para 7 categorías
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+PORC_ADM7 <- ggplot(SANTIAGO,aes(x = cluster7,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"               , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM7   <- ggplot(SANTIAGO,aes(x = cluster7,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"     , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM7      <- ggplot(SANTIAGO,aes(x = cluster7,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigración"                               , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(database$TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP7      <- ggplot(SANTIAGO,aes(x = cluster7,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"          , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC7      <- ggplot(SANTIAGO,aes(x = cluster7,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                  , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ7    <- ggplot(SANTIAGO,aes(x = cluster7,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                       , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+```
+
+```{r,fig.width=12,fig.height=7}
+plot_grid(PORC_ADM7,PJHSEM7,TIM7,EMP7,HAC7,PIMVZ7)
+```
+
+### Para 8 categorías
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+
+PORC_ADM8 <- ggplot(SANTIAGO,aes(x = cluster8,y = PORC_ADM)) + geom_boxplot() + labs(title = "Porcentaje adultos mayores por zona"               , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PORC_ADM)),linetype="dotted",size=1.5,color="deeppink1")
+PJHSEM8   <- ggplot(SANTIAGO,aes(x = cluster8,y = PJHSEM))   + geom_boxplot() + labs(title = "Porcentaje Jefes de Hogar sin ensenanza media"     , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PJHSEM))  ,linetype="dotted",size=1.5,color="deeppink1")
+TIM8      <- ggplot(SANTIAGO,aes(x = cluster8,y = log(TIM))) + geom_boxplot() + labs(title = "Tasa de inmigración"                               , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(log(database$TIM))),linetype="dotted",size=1.5,color="deeppink1")
+EMP8      <- ggplot(SANTIAGO,aes(x = cluster8,y = EMP))      + geom_boxplot() + labs(title = "Porcentaje empleabilidad mayor a 15 anos"          , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$EMP))     ,linetype="dotted",size=1.5,color="deeppink1")
+HAC8      <- ggplot(SANTIAGO,aes(x = cluster8,y = HAC))      + geom_boxplot() + labs(title = "Porcentaje hacinamiento por zona"                  , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$HAC))     ,linetype="dotted",size=1.5,color="deeppink1")
+PIMVZ8    <- ggplot(SANTIAGO,aes(x = cluster8,y = PIMVZ))    + geom_boxplot() + labs(title = "Materialidad de la vivienda"                       , x = "Cluster", y = "Porcentaje") + geom_hline(aes(yintercept = mean(database$PIMVZ))   ,linetype="dotted",size=1.5,color="deeppink1")
+
+
+```
+
+```{r,fig.width=12,fig.height=7}
+plot_grid(PORC_ADM8,PJHSEM8,TIM8,EMP8,HAC8,PIMVZ8)
+```

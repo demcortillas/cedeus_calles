@@ -1,0 +1,371 @@
+library(sf)
+library(dplyr)
+library(Rfast)
+
+paradero10hr     <- st_read('RECICLADO/inputs/paradero10hr_.shp')[,c('EDAD_65','NOM_COM','geocodigo','Acceso')]      %>% arrange(geocodigo)
+paradero17hr     <- st_read('RECICLADO/inputs/paradero17hr_.shp')[,c('EDAD_65','NOM_COM','geocodigo','Acceso')]      %>% arrange(geocodigo)
+paradero10hrProj <- st_read('RECICLADO/inputs/paraderoProj10hr_.shp')[,c('EDAD_65','NOM_COM','geocodigo','Acceso')]  %>% arrange(geocodigo)
+paradero17hrProj <- st_read('RECICLADO/inputs/paraderoProj17hr_.shp')[,c('EDAD_65','NOM_COM','geocodigo','Acceso')]  %>% arrange(geocodigo)
+
+colnames(paradero10hr)[which(colnames(paradero10hr) == 'Acceso')] <- 'AccPar10hr'
+colnames(paradero17hr)[which(colnames(paradero17hr) == 'Acceso')] <- 'AccPar17hr'
+colnames(paradero10hrProj)[which(colnames(paradero10hrProj) == 'Acceso')] <- 'AccPar10hrProj'
+colnames(paradero17hrProj)[which(colnames(paradero17hrProj) == 'Acceso')] <- 'AccPar17hrProj'
+
+metroBus10hr     <- st_read('RECICLADO/inputs/metroBus10hr_.shp')[,c('EDAD_65','NOM_COM','geocodigo','Acceso')]      %>% arrange(geocodigo)
+metroBus17hr     <- st_read('RECICLADO/inputs/metroBus17hr_.shp')[,c('EDAD_65','NOM_COM','geocodigo','Acceso')]      %>% arrange(geocodigo)
+metroBus10hrProj <- st_read('RECICLADO/inputs/metroBusProj10hr_.shp')[,c('EDAD_65','NOM_COM','geocodigo','Acceso')]  %>% arrange(geocodigo)
+metroBus17hrProj <- st_read('RECICLADO/inputs/metroBusProj17hr_.shp')[,c('EDAD_65','NOM_COM','geocodigo','Acceso')]  %>% arrange(geocodigo)
+colnames(metroBus10hr)[which(colnames(metroBus10hr) == 'Acceso')] <- 'AccMetroBus10hr'
+colnames(metroBus17hr)[which(colnames(metroBus17hr) == 'Acceso')] <- 'AccMetroBus17hr'
+colnames(metroBus10hrProj)[which(colnames(metroBus10hrProj) == 'Acceso')] <- 'AccMetroBus10hrProj'
+colnames(metroBus17hrProj)[which(colnames(metroBus17hrProj) == 'Acceso')] <- 'AccMetroBus17hrProj'
+
+SANTIAGO_ZONA           <- st_read('outputs/WALKSCORE/SANTIAGO_WS.shp') %>% arrange(GEOCODIGO)
+SANTIAGO_ZONA$GEOCODIGO <- as.numeric(SANTIAGO_ZONA$GEOCODIGO)
+
+GEOCOD_MANZ             <- paradero10hr$geocodigo
+GEOCOD_ZONA             <- SANTIAGO_ZONA$GEOCODIGO
+
+
+#### Fijarse que los geocodigos sean todos iguales en las 8 variables
+#### View(data.frame(paradero10hr$geocodigo,paradero17hr$geocodigo,paradero10hrProj$geocodigo,paradero17hrProj$geocodigo,metroBus10hr$geocodigo,metroBus17hr$geocodigo,metroBus10hrProj$geocodigo,metroBus17hrProj$geocodigo))
+
+PORC_AMD <- rep(0,length(GEOCOD_MANZ))  ; PJHSEM   <- rep(0,length(GEOCOD_MANZ))  ; TIM      <- rep(0,length(GEOCOD_MANZ))    ; EMP        <- rep(0,length(GEOCOD_MANZ))
+HAC      <- rep(0,length(GEOCOD_MANZ))  ; ALLE     <- rep(0,length(GEOCOD_MANZ))  ; PIMVZ    <- rep(0,length(GEOCOD_MANZ))    ; ISMT       <- rep(0,length(GEOCOD_MANZ))
+cluster2 <- rep(NA,length(GEOCOD_MANZ)) ; cluster3 <- rep(NA,length(GEOCOD_MANZ)) ; cluster4 <- rep(NA,length(GEOCOD_MANZ))   ; cluster5   <- rep(NA,length(GEOCOD_MANZ)) 
+cluster6 <- rep(NA,length(GEOCOD_MANZ)) ; cluster7 <- rep(NA,length(GEOCOD_MANZ)) ; cluster8 <- rep(NA,length(GEOCOD_MANZ))   ; k8I        <- rep(NA,length(GEOCOD_MANZ)) 
+k8II     <- rep(NA,length(GEOCOD_MANZ)) ; k8III    <- rep(NA,length(GEOCOD_MANZ)) ; walkscore0 <- rep(NA,length(GEOCOD_MANZ)) ; walkscore1 <- rep(NA,length(GEOCOD_MANZ))
+
+for(i in 1:length(GEOCOD_MANZ)){
+  print(round((i/length(GEOCOD_MANZ))*100,2))
+  j <-binary_search(GEOCOD_ZONA,GEOCOD_MANZ[i],index=TRUE)
+  PORC_AMD[i] <- SANTIAGO_ZONA$PORC_ADM[j]
+  PJHSEM[i]   <- SANTIAGO_ZONA$PJHSEM[j] ; TIM[i]      <- SANTIAGO_ZONA$TIM[j]
+  EMP[i]      <- SANTIAGO_ZONA$EMP[j]    ; HAC[i]      <- SANTIAGO_ZONA$HAC[j]
+  ALLE[i]     <- SANTIAGO_ZONA$ALLE[j]   ; PIMVZ[i]    <- SANTIAGO_ZONA$PIMVZ[j]
+
+  cluster2[i] <- SANTIAGO_ZONA$cluster2[j] ; cluster3[i] <- SANTIAGO_ZONA$cluster3[j]
+  cluster4[i] <- SANTIAGO_ZONA$cluster4[j] ; cluster5[i] <- SANTIAGO_ZONA$cluster5[j]
+  cluster6[i] <- SANTIAGO_ZONA$cluster6[j] ; cluster7[i] <- SANTIAGO_ZONA$cluster7[j]
+  cluster8[i] <- SANTIAGO_ZONA$cluster8[j] ; k8I[i]      <- SANTIAGO_ZONA$k8I[j]
+  k8II[i]     <- SANTIAGO_ZONA$k8II[j]     ; ISMT[i]     <- SANTIAGO_ZONA$ISMT[j]
+  k8III[i]    <- SANTIAGO_ZONA$k8III[j]    ; walkscore0[i] <- SANTIAGO_ZONA$walkscore0[j]
+  walkscore1[i] <- SANTIAGO_ZONA$walkscore1[j]
+}
+
+#### Transformacion a un nombre central
+
+MANZ <- paradero10hr
+colnames(MANZ)[which(colnames(MANZ)=='Acceso')]<- 'AccPar10hr'
+MANZ$AccPar10hrProj <- paradero10hrProj$AccPar10hrProj
+MANZ$AccPar17hr     <- paradero17hr$AccPar17hr
+MANZ$AccPar17hrProj <- paradero17hrProj$AccPar17hrProj
+
+MANZ$AccMetroBus10hr     <- metroBus10hr$AccMetroBus10hr
+MANZ$AccMetroBus10hrProj <- metroBus10hrProj$AccMetroBus10hrProj
+MANZ$AccMetroBus17hr     <- metroBus17hr$AccMetroBus17hr
+MANZ$AccMetroBus17hrProj <- metroBus17hrProj$AccMetroBus17hrProj
+
+MANZ$PORC_AMD  <-PORC_AMD  ; MANZ$PJHSEM   <-PJHSEM   ; MANZ$TIM      <- TIM      ; MANZ$EMP      <- EMP;
+MANZ$HAC       <-HAC       ; MANZ$ALLE     <-ALLE     ; MANZ$PIMVZ    <- PIMVZ    ; MANZ$ISMT     <- ISMT;
+MANZ$cluster2  <- cluster2 ; MANZ$cluster3 <-cluster3 ; MANZ$cluster4 <- cluster4 ; MANZ$cluster5 <- cluster5;
+MANZ$cluster6  <- cluster6 ; MANZ$cluster7 <-cluster7 ; MANZ$cluster8 <- cluster8 ; MANZ$k8I      <- k8I;    
+MANZ$k8II      <- k8II
+MANZ$k8III     <- k8III
+MANZ$walkscore0 <- walkscore0 ; MANZ$walkscore1 <- walkscore1
+MANZ           <- MANZ[-which(is.na(MANZ$k8II)),]
+MANZ$EDAD_65   <- as.numeric(MANZ$EDAD_65)
+MANZ$EDAD_65[which(is.na(MANZ$EDAD_65))] <- 0
+
+
+#### CRUCE DE TABLAS
+### a1,a2,a3 = 'Barrio de adultos mayores Acomodados'
+### b1,b2,b3 = 'Barrio de adultos mayores No acomodados'
+### c = 'Barrio Joven'
+
+CAT_ACC <- c("Con acceso","Al paradero caminando","Caminando")
+
+#### COMBINACIONES entre (con acceso y sin acceso),(Avejentados acomodados, Avejentados No acomodados, Barrios mas Joviales), (Categorias de Cuartiles)
+
+# Diccionario:
+
+# 1 : AA con acceso 1 cuartil
+# 2 : AA con acceso 2,3 cuartil 
+# 3 : AA con acceso 4 cuartil   -> Este interesa
+# 4 : AA sin acceso 1 cuartil
+# 5 : AA sin acceso 2,3 cuartil
+# 6 : AA sin acceso 4 cuartil   -> Este interesa
+
+# 7 : ANA con acceso 1 cuartil
+# 8 : ANA con acceso 2,3 cuartil
+# 9 : ANA con acceso 4 cuartil  -> Este interesa
+# 10: ANA sin acceso 1 cuartil 
+# 11: ANA sin acceso 2,3 cuartil
+# 12: ANA sin acceso 4 cuartil  -> Este interesa
+
+# 13: JOV con acceso
+# 14: JOV sin acceso
+
+# Sin proyeccion
+SP_CAT10hrs <- rep(NA,dim(MANZ)[1])
+for(i in 1:dim(MANZ)[1]){
+  if(MANZ$k8III[i] == 'a1' & MANZ$AccPar10hr[i] %in% CAT_ACC){SP_CAT10hrs[i]        <- 1}
+  if(MANZ$k8III[i] == 'a2' & MANZ$AccPar10hr[i] %in% CAT_ACC){SP_CAT10hrs[i]        <- 2}
+  if(MANZ$k8III[i] == 'a3' & MANZ$AccPar10hr[i] %in% CAT_ACC){SP_CAT10hrs[i]        <- 3}
+  
+  if(MANZ$k8III[i] == 'a1' & MANZ$AccPar10hr[i] == 'Nada de acceso'){SP_CAT10hrs[i] <- 4}
+  if(MANZ$k8III[i] == 'a2' & MANZ$AccPar10hr[i] == 'Nada de acceso'){SP_CAT10hrs[i] <- 5}
+  if(MANZ$k8III[i] == 'a3' & MANZ$AccPar10hr[i] == 'Nada de acceso'){SP_CAT10hrs[i] <- 6}
+  
+  if(MANZ$k8III[i] == 'b1' & MANZ$AccPar10hr[i] %in% CAT_ACC){SP_CAT10hrs[i]        <- 7}
+  if(MANZ$k8III[i] == 'b2' & MANZ$AccPar10hr[i] %in% CAT_ACC){SP_CAT10hrs[i]        <- 8}
+  if(MANZ$k8III[i] == 'b3' & MANZ$AccPar10hr[i] %in% CAT_ACC){SP_CAT10hrs[i]        <- 9}
+  
+  if(MANZ$k8III[i] == 'b1' & MANZ$AccPar10hr[i] == 'Nada de acceso'){SP_CAT10hrs[i] <- 10}
+  if(MANZ$k8III[i] == 'b2' & MANZ$AccPar10hr[i] == 'Nada de acceso'){SP_CAT10hrs[i] <- 11}
+  if(MANZ$k8III[i] == 'b3' & MANZ$AccPar10hr[i] == 'Nada de acceso'){SP_CAT10hrs[i] <- 12}
+  
+  if(MANZ$k8III[i] == 'c' & MANZ$AccPar10hr[i] %in% CAT_ACC){SP_CAT10hrs[i]         <- 13}
+  if(MANZ$k8III[i] == 'c' & MANZ$AccPar10hr[i] == 'Nada de acceso'){SP_CAT10hrs[i]  <- 14}
+}
+
+SP_CAT17hrs <- rep(NA,dim(MANZ)[1])
+for(i in 1:dim(MANZ)[1]){
+  if(MANZ$k8III[i] == 'a1' & MANZ$AccPar17hr[i] %in% CAT_ACC){SP_CAT17hrs[i]         <- 1}
+  if(MANZ$k8III[i] == 'a2' & MANZ$AccPar17hr[i] %in% CAT_ACC){SP_CAT17hrs[i]         <- 2}
+  if(MANZ$k8III[i] == 'a3' & MANZ$AccPar17hr[i] %in% CAT_ACC){SP_CAT17hrs[i]         <- 3}
+  
+  if(MANZ$k8III[i] == 'a1' & MANZ$AccPar17hr[i] == 'Nada de acceso'){SP_CAT17hrs[i]  <- 4}
+  if(MANZ$k8III[i] == 'a2' & MANZ$AccPar17hr[i] == 'Nada de acceso'){SP_CAT17hrs[i]  <- 5}
+  if(MANZ$k8III[i] == 'a3' & MANZ$AccPar17hr[i] == 'Nada de acceso'){SP_CAT17hrs[i]  <- 6}
+  
+  if(MANZ$k8III[i] == 'b1' & MANZ$AccPar17hr[i] %in% CAT_ACC){SP_CAT17hrs[i]         <- 7}
+  if(MANZ$k8III[i] == 'b2' & MANZ$AccPar17hr[i] %in% CAT_ACC){SP_CAT17hrs[i]         <- 8}
+  if(MANZ$k8III[i] == 'b3' & MANZ$AccPar17hr[i] %in% CAT_ACC){SP_CAT17hrs[i]         <- 9}
+  
+  if(MANZ$k8III[i] == 'b1' & MANZ$AccPar17hr[i] == 'Nada de acceso'){SP_CAT17hrs[i]  <- 10}
+  if(MANZ$k8III[i] == 'b2' & MANZ$AccPar17hr[i] == 'Nada de acceso'){SP_CAT17hrs[i]  <- 11}
+  if(MANZ$k8III[i] == 'b3' & MANZ$AccPar17hr[i] == 'Nada de acceso'){SP_CAT17hrs[i]  <- 12}
+  
+  if(MANZ$k8III[i] == 'c' & MANZ$AccPar17hr[i] %in% CAT_ACC){SP_CAT17hrs[i]          <- 13}
+  if(MANZ$k8III[i] == 'c' & MANZ$AccPar17hr[i] == 'Nada de acceso'){SP_CAT17hrs[i]   <- 14}
+}
+
+# Con proyeccion
+CP_CAT10hrs <- rep(NA,dim(MANZ)[1])
+for(i in 1:dim(MANZ)[1]){
+  if(MANZ$k8III[i] == 'a1' & MANZ$AccPar10hrProj[i] %in% CAT_ACC){CP_CAT10hrs[i]        <- 1}
+  if(MANZ$k8III[i] == 'a2' & MANZ$AccPar10hrProj[i] %in% CAT_ACC){CP_CAT10hrs[i]        <- 2}
+  if(MANZ$k8III[i] == 'a3' & MANZ$AccPar10hrProj[i] %in% CAT_ACC){CP_CAT10hrs[i]        <- 3}
+
+  if(MANZ$k8III[i] == 'a1' & MANZ$AccPar10hrProj[i] == 'Nada de acceso'){CP_CAT10hrs[i] <- 4}
+  if(MANZ$k8III[i] == 'a2' & MANZ$AccPar10hrProj[i] == 'Nada de acceso'){CP_CAT10hrs[i] <- 5}
+  if(MANZ$k8III[i] == 'a3' & MANZ$AccPar10hrProj[i] == 'Nada de acceso'){CP_CAT10hrs[i] <- 6}
+  
+  if(MANZ$k8III[i] == 'b1' & MANZ$AccPar10hrProj[i] %in% CAT_ACC){CP_CAT10hrs[i]        <- 7}
+  if(MANZ$k8III[i] == 'b2' & MANZ$AccPar10hrProj[i] %in% CAT_ACC){CP_CAT10hrs[i]        <- 8}
+  if(MANZ$k8III[i] == 'b3' & MANZ$AccPar10hrProj[i] %in% CAT_ACC){CP_CAT10hrs[i]        <- 9}
+  
+  if(MANZ$k8III[i] == 'b1' & MANZ$AccPar10hrProj[i] == 'Nada de acceso'){CP_CAT10hrs[i] <- 10}
+  if(MANZ$k8III[i] == 'b2' & MANZ$AccPar10hrProj[i] == 'Nada de acceso'){CP_CAT10hrs[i] <- 11}
+  if(MANZ$k8III[i] == 'b3' & MANZ$AccPar10hrProj[i] == 'Nada de acceso'){CP_CAT10hrs[i] <- 12}
+  
+  if(MANZ$k8III[i] == 'c' & MANZ$AccPar10hrProj[i] %in% CAT_ACC){CP_CAT10hrs[i]         <- 13}
+  if(MANZ$k8III[i] == 'c' & MANZ$AccPar10hrProj[i] == 'Nada de acceso'){CP_CAT10hrs[i]  <- 14}
+}
+
+CP_CAT17hrs <- rep(NA,dim(MANZ)[1])
+for(i in 1:dim(MANZ)[1]){
+  if(MANZ$k8III[i] == 'a1' & MANZ$AccPar17hrProj[i] %in% CAT_ACC){CP_CAT17hrs[i]        <- 1}
+  if(MANZ$k8III[i] == 'a2' & MANZ$AccPar17hrProj[i] %in% CAT_ACC){CP_CAT17hrs[i]        <- 2}
+  if(MANZ$k8III[i] == 'a3' & MANZ$AccPar17hrProj[i] %in% CAT_ACC){CP_CAT17hrs[i]        <- 3}
+  
+  if(MANZ$k8III[i] == 'a1' & MANZ$AccPar17hrProj[i] == 'Nada de acceso'){CP_CAT17hrs[i] <- 4}
+  if(MANZ$k8III[i] == 'a2' & MANZ$AccPar17hrProj[i] == 'Nada de acceso'){CP_CAT17hrs[i] <- 5}
+  if(MANZ$k8III[i] == 'a3' & MANZ$AccPar17hrProj[i] == 'Nada de acceso'){CP_CAT17hrs[i] <- 6}
+  
+  if(MANZ$k8III[i] == 'b1' & MANZ$AccPar17hrProj[i] %in% CAT_ACC){CP_CAT17hrs[i]        <- 7}
+  if(MANZ$k8III[i] == 'b2' & MANZ$AccPar17hrProj[i] %in% CAT_ACC){CP_CAT17hrs[i]        <- 8}
+  if(MANZ$k8III[i] == 'b3' & MANZ$AccPar17hrProj[i] %in% CAT_ACC){CP_CAT17hrs[i]        <- 9}
+  
+  if(MANZ$k8III[i] == 'b1' & MANZ$AccPar17hrProj[i] == 'Nada de acceso'){CP_CAT17hrs[i] <- 10}
+  if(MANZ$k8III[i] == 'b2' & MANZ$AccPar17hrProj[i] == 'Nada de acceso'){CP_CAT17hrs[i] <- 11}
+  if(MANZ$k8III[i] == 'b3' & MANZ$AccPar17hrProj[i] == 'Nada de acceso'){CP_CAT17hrs[i] <- 12}
+  
+  if(MANZ$k8III[i] == 'c' & MANZ$AccPar17hrProj[i] %in% CAT_ACC){CP_CAT17hrs[i]         <- 13}
+  if(MANZ$k8III[i] == 'c' & MANZ$AccPar17hrProj[i] == 'Nada de acceso'){CP_CAT17hrs[i]  <- 14}
+}
+
+
+MANZ$SP_CAT10hrs <- SP_CAT10hrs
+MANZ$SP_CAT17hrs <- SP_CAT17hrs
+MANZ$CP_CAT10hrs <- CP_CAT10hrs
+MANZ$CP_CAT17hrs <- CP_CAT17hrs
+
+
+
+#### COMBINACIONES entre (con acceso y sin acceso),(Avejentados acomodados, Avejentados No acomodados, Barrios mas Joviales), (Sin categoria de cuartiles)
+
+SP_CAT10hrs2 <- rep(NA,dim(MANZ)[1])
+for(i in 1:dim(MANZ)[1]){
+  if(MANZ$k8II[i] == 'a' &  MANZ$AccPar10hr[i] %in% CAT_ACC){SP_CAT10hrs2[i] <- 1}
+  if(MANZ$k8II[i] == 'b' &  MANZ$AccPar10hr[i] %in% CAT_ACC){SP_CAT10hrs2[i] <- 2}
+  if(MANZ$k8II[i] == 'c' &  MANZ$AccPar10hr[i] %in% CAT_ACC){SP_CAT10hrs2[i] <- 3}
+  
+  if(MANZ$k8II[i] == 'a' &  MANZ$AccPar10hr[i] == 'Nada de acceso'){SP_CAT10hrs2[i] <- 4}
+  if(MANZ$k8II[i] == 'b' &  MANZ$AccPar10hr[i] == 'Nada de acceso'){SP_CAT10hrs2[i] <- 5}
+  if(MANZ$k8II[i] == 'c' &  MANZ$AccPar10hr[i] == 'Nada de acceso'){SP_CAT10hrs2[i] <- 6}
+}
+
+SP_CAT17hrs2  <- rep(NA,dim(MANZ)[1])
+for(i in 1:dim(MANZ)[1]){
+  if(MANZ$k8II[i] == 'a' &  MANZ$AccPar17hrProj[i] %in% CAT_ACC){SP_CAT17hrs2[i] <- 1}
+  if(MANZ$k8II[i] == 'b' &  MANZ$AccPar17hrProj[i] %in% CAT_ACC){SP_CAT17hrs2[i] <- 2}
+  if(MANZ$k8II[i] == 'c' &  MANZ$AccPar17hrProj[i] %in% CAT_ACC){SP_CAT17hrs2[i] <- 3}
+  
+  if(MANZ$k8II[i] == 'a' &  MANZ$AccPar17hrProj[i] == 'Nada de acceso'){SP_CAT17hrs2[i] <- 4}
+  if(MANZ$k8II[i] == 'b' &  MANZ$AccPar17hrProj[i] == 'Nada de acceso'){SP_CAT17hrs2[i] <- 5}
+  if(MANZ$k8II[i] == 'c' &  MANZ$AccPar17hrProj[i] == 'Nada de acceso'){SP_CAT17hrs2[i] <- 6}
+}
+
+CP_CAT10hrs2 <- rep(NA,dim(MANZ)[1])
+for(i in 1:dim(MANZ)[1]){
+  if(MANZ$k8II[i] == 'a' & MANZ$AccPar10hrProj[i] %in% CAT_ACC){CP_CAT10hrs2[i] <- 1}
+  if(MANZ$k8II[i] == 'b' & MANZ$AccPar10hrProj[i] %in% CAT_ACC){CP_CAT10hrs2[i] <- 2}
+  if(MANZ$k8II[i] == 'c' & MANZ$AccPar10hrProj[i] %in% CAT_ACC){CP_CAT10hrs2[i] <- 3}
+  
+  if(MANZ$k8II[i] == 'a' & MANZ$AccPar10hrProj[i] == 'Nada de acceso'){CP_CAT10hrs2[i] <- 4}
+  if(MANZ$k8II[i] == 'b' & MANZ$AccPar10hrProj[i] == 'Nada de acceso'){CP_CAT10hrs2[i] <- 5}
+  if(MANZ$k8II[i] == 'c' & MANZ$AccPar10hrProj[i] == 'Nada de acceso'){CP_CAT10hrs2[i] <- 6}
+}
+
+CP_CAT17hrs2 <-  rep(NA,dim(MANZ)[1])
+for(i in 1:dim(MANZ)[1]){
+  if(MANZ$k8II[i] == 'a' & MANZ$AccPar17hrProj[i] %in% CAT_ACC){CP_CAT17hrs2[i] <- 1}
+  if(MANZ$k8II[i] == 'b' & MANZ$AccPar17hrProj[i] %in% CAT_ACC){CP_CAT17hrs2[i] <- 2}
+  if(MANZ$k8II[i] == 'c' & MANZ$AccPar17hrProj[i] %in% CAT_ACC){CP_CAT17hrs2[i] <- 3}
+  
+  if(MANZ$k8II[i] == 'a' & MANZ$AccPar17hrProj[i] == 'Nada de acceso'){CP_CAT17hrs2[i] <- 4}
+  if(MANZ$k8II[i] == 'b' & MANZ$AccPar17hrProj[i] == 'Nada de acceso'){CP_CAT17hrs2[i] <- 5}
+  if(MANZ$k8II[i] == 'c' & MANZ$AccPar17hrProj[i] == 'Nada de acceso'){CP_CAT17hrs2[i] <- 6}
+}
+
+MANZ$SP_CAT10hrs2 <- SP_CAT10hrs2
+MANZ$SP_CAT17hrs2 <- SP_CAT17hrs2
+MANZ$CP_CAT10hrs2 <- CP_CAT10hrs2
+MANZ$CP_CAT17hrs2 <- CP_CAT17hrs2
+
+#### Cuales de estas tienen mala caminabilidad?
+
+# Diccionario:
+
+# 1 : AA con acceso 1 cuartil
+# 2 : AA con acceso 2,3 cuartil 
+# 3 : AA con acceso 4 cuartil   -> Este interesa
+# 4 : AA sin acceso 1 cuartil
+# 5 : AA sin acceso 2,3 cuartil
+# 6 : AA sin acceso 4 cuartil   -> Este interesa
+
+# 7 : ANA con acceso 1 cuartil
+# 8 : ANA con acceso 2,3 cuartil
+# 9 : ANA con acceso 4 cuartil  -> Este interesa
+# 10: ANA sin acceso 1 cuartil 
+# 11: ANA sin acceso 2,3 cuartil
+# 12: ANA sin acceso 4 cuartil  -> Este interesa
+
+# 13: JOV con acceso
+# 14: JOV sin acceso 
+
+#########################
+####                 ####
+#### Sin proyeccion  ####
+####                 ####
+#########################
+
+quant         <- quantile(MANZ$walkscore0,prob=c(0.25,0.5,0.75,1)) %>% as.numeric()
+BVULN1 <- rep(NA,dim(MANZ)[1])
+BVULN2 <- rep(NA,dim(MANZ)[1])
+for(i in 1:dim(MANZ)[1]){
+  if(MANZ$SP_CAT10hrs[i] ==  9 & MANZ$walkscore0[i] < quant[1]){BVULN1[i] <- 'ANA-MC-CON ACC-5MIN'}
+  if(MANZ$SP_CAT10hrs[i] ==  9 & MANZ$walkscore0[i] > quant[3]){BVULN1[i] <- 'ANA-BC-CON ACC-5MIN'}
+  
+  if(MANZ$SP_CAT10hrs[i] == 12 & MANZ$walkscore0[i] < quant[1]){BVULN1[i] <- 'ANA-MC-SIN ACC-5MIN'}
+  if(MANZ$SP_CAT10hrs[i] == 12 & MANZ$walkscore0[i] > quant[3]){BVULN1[i] <- 'ANA-BC-SIN ACC-5MIN'}
+  
+  if(MANZ$SP_CAT10hrs[i] ==  9 & MANZ$walkscore1[i] < quant[1]){BVULN2[i] <- 'ANA-MC-CON ACC-10MIN'}
+  if(MANZ$SP_CAT10hrs[i] ==  9 & MANZ$walkscore1[i] > quant[3]){BVULN2[i] <- 'ANA-BC-CON ACC-10MIN'}
+  
+  if(MANZ$SP_CAT10hrs[i] == 12 & MANZ$walkscore1[i] < quant[1]){BVULN2[i] <- 'ANA-MC-SIN ACC-10MIN'}
+  if(MANZ$SP_CAT10hrs[i] == 12 & MANZ$walkscore1[i] > quant[3]){BVULN2[i] <- 'ANA-BC-SIN ACC-10MIN'}
+}
+
+MANZ$BVULN1 <- BVULN1
+MANZ$BVULN2 <- BVULN2
+
+#####################################
+####                             ####
+#### Cantidad de adultos mayores ####
+####                             ####
+#####################################
+
+
+# Sin proyectar 10 hrs
+subset(MANZ,SP_CAT10hrs2 == 1)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,SP_CAT10hrs2 == 2)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,SP_CAT10hrs2 == 3)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,SP_CAT10hrs2 == 4)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,SP_CAT10hrs2 == 5)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,SP_CAT10hrs2 == 6)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+
+# Sin proyectar 17 hrs
+subset(MANZ,SP_CAT17hrs2 == 1)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,SP_CAT17hrs2 == 2)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,SP_CAT17hrs2 == 3)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,SP_CAT17hrs2 == 4)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,SP_CAT17hrs2 == 5)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,SP_CAT17hrs2 == 6)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+
+# Con proyectar 10 hrs
+subset(MANZ,CP_CAT10hrs2 == 1)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,CP_CAT10hrs2 == 2)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,CP_CAT10hrs2 == 3)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,CP_CAT10hrs2 == 4)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,CP_CAT10hrs2 == 5)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,CP_CAT10hrs2 == 6)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+
+# Con proyectar 17 hrs
+subset(MANZ,CP_CAT17hrs2 == 1)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,CP_CAT17hrs2 == 2)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,CP_CAT17hrs2 == 3)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,CP_CAT17hrs2 == 4)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,CP_CAT17hrs2 == 5)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+subset(MANZ,CP_CAT17hrs2 == 6)$EDAD_65 %>% as.numeric() %>% sum(na.rm=TRUE)
+
+######################################
+##                                  ##
+## Respecto a la caminabilidad      ##
+##                                  ##
+######################################
+
+hist(subset(SANTIAGO_ZONA,k8III=='a1')$walkscore0,xlab ='walkscore', main= 'Caminabilidad AA  1Q - 5 min')
+hist(subset(SANTIAGO_ZONA,k8III=='a2')$walkscore0,xlab ='walkscore', main= 'Caminabilidad AA 23Q - 5 min')
+hist(subset(SANTIAGO_ZONA,k8III=='a3')$walkscore0,xlab ='walkscore', main= 'Caminabilidad AA  4Q - 5 min')
+
+hist(subset(SANTIAGO_ZONA,k8III=='a1')$walkscore1,xlab ='walkscore', main= 'Caminabilidad AA 1Q - 10 min')
+hist(subset(SANTIAGO_ZONA,k8III=='a2')$walkscore1,xlab ='walkscore', main= 'Caminabilidad AA 23Q- 10 min')
+hist(subset(SANTIAGO_ZONA,k8III=='a3')$walkscore1,xlab ='walkscore', main= 'Caminabilidad AA 4Q - 10 min')
+
+hist(subset(SANTIAGO_ZONA,k8III=='b1')$walkscore0,xlab ='walkscore', main= 'Caminabilidad ANA  1Q - 5 min')
+hist(subset(SANTIAGO_ZONA,k8III=='b2')$walkscore0,xlab ='walkscore', main= 'Caminabilidad ANA 23Q - 5 min')
+hist(subset(SANTIAGO_ZONA,k8III=='b3')$walkscore0,xlab ='walkscore', main= 'Caminabilidad ANA  1Q - 5 min')
+
+hist(subset(SANTIAGO_ZONA,k8III=='b1')$walkscore1,xlab ='walkscore', main= 'Caminabilidad ANA  1Q - 10 min')
+hist(subset(SANTIAGO_ZONA,k8III=='b2')$walkscore1,xlab ='walkscore', main= 'Caminabilidad ANA 23Q - 10 min')
+hist(subset(SANTIAGO_ZONA,k8III=='b3')$walkscore1,xlab ='walkscore', main= 'Caminabilidad ANA  4Q - 10 min')
+
+hist(subset(SANTIAGO_ZONA,k8III=='c')$walkscore0,xlab ='walkscore', main = 'Caminabilidad BJOV - 5 min')
+hist(subset(SANTIAGO_ZONA,k8III=='c')$walkscore1,xlab ='walkscore', main = 'Caminabilidad BJOV - 10 min')
+
+st_write(obj = MANZ  , dsn="RECICLADO/outputs", layer="CATEGO.shp"  , driver="ESRI Shapefile",delete_layer = TRUE)
+

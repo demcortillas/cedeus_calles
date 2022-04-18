@@ -1,0 +1,2 @@
+"0",""
+"0","ISMT_2      <- ggplot(SANTIAGO,aes(x = cluster2,y = ISMT)) + geom_boxplot() + labs(title = ""Indice sociomaterial territorial"" , x = ""Cluster"", y = ""Puntaje"")   + geom_hline(aes(yintercept = mean(ISMT)) ,linetype=""dotted"",size=1.5,color=""deeppink1"")"

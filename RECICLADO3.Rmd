@@ -1,0 +1,47 @@
+---
+title: "Comparacion 60 y 65"
+author: "Diego Medina"
+date: "22-03-2022"
+output: rmdformats::readthedown
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r,message=FALSE,warning=FALSE,include=FALSE}
+library(sp)
+library(sf)
+library(dplyr)
+library(ggplot2)
+library(dendextend)
+
+SANTIAGO1 <- st_read('RECICLADO/inputs/SANTIAGO_JERARQUICO1.shp')
+SANTIAGO2 <- st_read('outputs/ISMT/SANTIAGO/SANTIAGO_ISMT.shp')
+
+```
+
+# Cluster para Santiago con adultos mayores mayores de 60 años
+
+```{r}
+data.scaled1  <- scale(x = as.data.frame(SANTIAGO1)[c("PORC_AD","PJHSEM","TIM","EMP","HAC","PIMVZ")],center=TRUE,scale=TRUE)
+res.dist1     <- dist(x = data.scaled1, method = "euclidean")
+res.hc1       <- hclust(d=res.dist1, method = "ward.D")
+#fviz_dend(x = res.hc1, k = 8, k_colors = "jco",show_labels = FALSE, main = "Datos iris")
+```
+
+# Cluster para Santiago con adultos mayores mayores de 60 años
+
+```{r}
+data.scaled2  <- scale(x = as.data.frame(SANTIAGO2)[c("PORC_ADM","PJHSEM","TIM","EMP","HAC","PIMVZ")],center=TRUE,scale=TRUE)
+res.dist2     <- dist(x = data.scaled2, method = "euclidean")
+res.hc2       <- hclust(d=res.dist2, method = "ward.D")
+#fviz_dend(x = res.hc2, k = 8, k_colors = "jco",show_labels = FALSE, main = "Datos iris")
+```
+
+# Migración
+
+
+
+
+
